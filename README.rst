@@ -2,7 +2,11 @@
 django-user-accounts: user accounts for Django
 ==============================================
 
-Provides user accounts to a Django project.
+Provides user accounts to a GeoNode project.
+
+Forked from django-user-account for implementing the user invitation feature.
+When in django-user-account it will be re-enabled that feature (once existing in 
+Pinax) we will move back to it.
 
 Requirements
 ============
