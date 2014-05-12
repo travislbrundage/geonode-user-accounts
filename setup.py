@@ -18,11 +18,6 @@ setup(
         "pytz>=2013.9"
     ],
     zip_safe=False,
-    package_data={
-        "account": [
-            "locale/*/LC_MESSAGES/*",
-        ],
-    },
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Web Environment",
@@ -33,5 +28,6 @@ setup(
         "Programming Language :: Python :: 2",
         "Programming Language :: Python :: 3",
         "Framework :: Django",
-    ]
+    ],
+    include_package_data=True,
 )
