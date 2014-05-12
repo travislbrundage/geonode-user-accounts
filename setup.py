@@ -4,7 +4,7 @@ import account
 
 
 setup(
-    name="django-user-accounts",
+    name="geonode-user-accounts",
     version=account.__version__,
     author="Brian Rosner",
     author_email="brosner@gmail.com",
