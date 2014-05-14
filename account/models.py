@@ -170,6 +170,9 @@ class SignupCode(models.Model):
         }
         if email:
             params["email"] = email
+        #if settings.ACCOUNT_INVITE_USERNAME:
+        if kwargs.get("username", True):
+            params["username"] = kwargs.get("username")
         return cls(**params)
 
     @classmethod
@@ -220,6 +223,10 @@ class SignupCode(models.Model):
         self.save()
         signup_code_sent.send(sender=SignupCode, signup_code=self)
 
+class SignupCodeExtended(models.Model):
+
+    signupcode = models.OneToOneField(SignupCode, primary_key=True)
+    username = models.CharField(max_length=30, unique=True)
 
 class SignupCodeResult(models.Model):
 

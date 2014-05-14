@@ -15,19 +15,19 @@ from django.contrib import auth
 from account.compat import get_user_model, get_user_lookup_kwargs
 from account.conf import settings
 from account.hooks import hookset
-from account.models import EmailAddress, SignupCode
+from account.models import EmailAddress, SignupCode, SignupCodeExtended
 
 
 alnum_re = re.compile(r"^\w+$")
 
 
 class SignupForm(forms.Form):
-
+    
     username = forms.CharField(
         label=_("Username"),
         max_length=30,
         widget=forms.TextInput(),
-        required=True
+        required=False
     )
     password = forms.CharField(
         label=_("Password"),
@@ -46,10 +46,19 @@ class SignupForm(forms.Form):
         required=False,
         widget=forms.HiddenInput()
     )
+    
+    def __init__(self, *args, **kwargs):
+        super(SignupForm, self).__init__(*args, **kwargs)
+        code = self.initial['code']
+        sc = SignupCode.objects.get(code=code)
+        field = self.fields['username']
+
+        if SignupCodeExtended.objects.filter(signupcode = sc).exists():
+            field.widget.attrs['readonly'] = True
 
     def clean_username(self):
-        if not alnum_re.search(self.cleaned_data["username"]):
-            raise forms.ValidationError(_("Usernames can only contain letters, numbers and underscores."))
+        if not alnum_re.search(self.cleaned_data["username"].replace('.', '')):
+            raise forms.ValidationError(_("Usernames can only contain letters, numbers, dots and underscores."))
         User = get_user_model()
         lookup_kwargs = get_user_lookup_kwargs({
             "{username}__iexact": self.cleaned_data["username"]
@@ -217,6 +226,9 @@ class SettingsForm(forms.Form):
         raise forms.ValidationError(_("A user is registered with this email address."))
         
 class SignupCodeForm(forms.ModelForm):
+
+    username = forms.CharField(max_length=30, required=False)
+    
     class Meta:
         model = SignupCode
         fields = ('max_uses', 'email', 'notes',)

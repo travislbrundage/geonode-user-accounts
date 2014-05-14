@@ -20,7 +20,8 @@ from account.forms import ChangePasswordForm, PasswordResetForm, PasswordResetTo
 from account.forms import SettingsForm, SignupCodeForm
 from account.hooks import hookset
 from account.mixins import LoginRequiredMixin
-from account.models import SignupCode, EmailAddress, EmailConfirmation, Account, AccountDeletion
+from account.models import SignupCode, SignupCodeExtended, EmailAddress, \
+    EmailConfirmation, Account, AccountDeletion
 from account.utils import default_redirect
 
 
@@ -70,6 +71,8 @@ class SignupView(FormView):
             initial["code"] = self.signup_code.code
             if self.signup_code.email:
                 initial["email"] = self.signup_code.email
+            if hasattr(self.signup_code, 'signupcodeextended'):
+                initial["username"] = self.signup_code.signupcodeextended.username
         return initial
 
     def get_template_names(self):
@@ -93,6 +96,7 @@ class SignupView(FormView):
         return kwargs
 
     def form_invalid(self, form):
+        
         signals.user_sign_up_attempt.send(
             sender=SignupForm,
             username=form.data.get("username"),
@@ -149,9 +153,13 @@ class SignupView(FormView):
 
     def create_user(self, form, commit=True, **kwargs):
         user = get_user_model()(**kwargs)
-        username = form.cleaned_data.get("username")
-        if username is None:
-            username = self.generate_username(form)
+
+        code = form.cleaned_data['code']
+        if SignupCodeExtended.objects.filter(signupcode__code = code).exists():
+            username = SignupCodeExtended.objects.get(signupcode__code = code).username
+        else:
+            username = form.cleaned_data["username"].strip()
+ 
         user.username = username
         user.email = form.cleaned_data["email"].strip()
         password = form.cleaned_data.get("password")
@@ -745,7 +753,8 @@ class DeleteView(LogoutView):
         return ctx
         
 class InviteUserView(LoginRequiredMixin, CreateView):
-
+    """ Invite a user."""
+    
     template_name = "account/invite_user.html"
     form_class = SignupCodeForm
 
@@ -763,6 +772,11 @@ class InviteUserView(LoginRequiredMixin, CreateView):
         signup_code = form.save(commit=False)
         signup_code.code = code
         signup_code.save()
+        if form.cleaned_data['username']:
+            signup_code_extended = SignupCodeExtended(
+                    username = form.cleaned_data['username'],
+                    signupcode = signup_code)
+            signup_code_extended.save()
         signup_code.send()
         messages.success(self.request, _("Invitation sent to user '%s'") % signup_code.email)
         return super(InviteUserView, self).form_valid(form)
