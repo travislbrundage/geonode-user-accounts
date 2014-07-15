@@ -49,12 +49,12 @@ class SignupForm(forms.Form):
     
     def __init__(self, *args, **kwargs):
         super(SignupForm, self).__init__(*args, **kwargs)
-        code = self.initial['code']
-        sc = SignupCode.objects.get(code=code)
-        field = self.fields['username']
-
-        if SignupCodeExtended.objects.filter(signupcode = sc).exists():
-            field.widget.attrs['readonly'] = True
+        if 'code' in self.initial:
+            code = self.initial['code']
+            sc = SignupCode.objects.get(code=code)
+            if SignupCodeExtended.objects.filter(signupcode = sc).exists():
+                field = self.fields['username']
+                field.widget.attrs['readonly'] = True
 
     def clean_username(self):
         if not alnum_re.search(self.cleaned_data["username"].replace('.', '')):
