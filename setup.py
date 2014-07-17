@@ -11,7 +11,7 @@ setup(
     description="a Django user account app",
     long_description=open("README.rst").read(),
     license="MIT",
-    url="https://github.com/GeoNode/django-user-accounts",
+    url="https://github.com/GeoNode/geonode-user-accounts",
     packages=find_packages(),
     install_requires=[
         "django-appconf>=0.6",
