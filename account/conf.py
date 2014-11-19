@@ -23,6 +23,17 @@ def load_path_attr(path):
         raise ImproperlyConfigured("Module '{0}' does not define a '{1}'".format(module, attr))
     return attr
 
+def get_languages():
+    """Workaround for languages that Django does not recognize
+    """
+    langs = []
+    for code, lang in settings.LANGUAGES:
+        if code in settings.EXTRA_LANG_INFO:
+            langs.append((code, settings.EXTRA_LANG_INFO[code].get("name_local")))
+        else:
+            langs.append((code, get_language_info(code).get("name_local")))
+
+    return langs
 
 class AccountAppConf(AppConf):
 
@@ -50,10 +61,7 @@ class AccountAppConf(AppConf):
     DELETION_EXPUNGE_HOURS = 48
     HOOKSET = "account.hooks.AccountDefaultHookSet"
     TIMEZONES = list(zip(pytz.all_timezones, pytz.all_timezones))
-    LANGUAGES = [
-        (code, get_language_info(code).get("name_local"))
-        for code, lang in settings.LANGUAGES
-    ]
+    LANGUAGES = get_languages()
     USE_AUTH_AUTHENTICATE = False
 
     def configure_deletion_mark_callback(self, value):
