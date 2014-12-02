@@ -112,9 +112,11 @@ class SignupView(FormView):
         self.created_user._disable_account_creation = True
         self.created_user.save()
         email_address = self.create_email_address(form)
+
         if settings.ACCOUNT_EMAIL_CONFIRMATION_REQUIRED and not email_address.verified:
             self.created_user.is_active = False
             self.created_user.save()
+
         self.create_account(form)
         self.after_signup(form)
         if settings.ACCOUNT_EMAIL_CONFIRMATION_EMAIL and not email_address.verified:
@@ -139,7 +141,11 @@ class SignupView(FormView):
             # API. this should only be relied on by d-u-a and it is not a stable
             # API for site developers.
             self.form = form
-            self.login_user()
+
+            # Use autologin only when the account is active.
+            if self.created_user.is_active:
+                self.login_user()
+
         return redirect(self.get_success_url())
 
     def get_success_url(self, fallback_url=None, **kwargs):
