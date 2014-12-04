@@ -23,7 +23,9 @@ from account.mixins import LoginRequiredMixin
 from account.models import SignupCode, SignupCodeExtended, EmailAddress, \
     EmailConfirmation, Account, AccountDeletion
 from account.utils import default_redirect
+from notification import models as notification
 
+from django.conf import settings
 
 class SignupView(FormView):
 
@@ -31,6 +33,8 @@ class SignupView(FormView):
     template_name_ajax = "account/ajax/signup.html"
     template_name_email_confirmation_sent = "account/email_confirmation_sent.html"
     template_name_email_confirmation_sent_ajax = "account/ajax/email_confirmation_sent.html"
+    template_name_admin_approval_sent = "account/admin_approval_sent.html"
+    template_name_admin_approval_sent_ajax = "account/ajax/admin_approval_sent.html"
     template_name_signup_closed = "account/signup_closed.html"
     template_name_signup_closed_ajax = "account/ajax/signup_closed.html"
     form_class = SignupForm
@@ -117,10 +121,21 @@ class SignupView(FormView):
             self.created_user.is_active = False
             self.created_user.save()
 
+        if settings.ACCOUNT_APPROVAL_REQUIRED:
+            self.created_user.is_active = False
+            self.created_user.save()
+
         self.create_account(form)
         self.after_signup(form)
+
+        if settings.ACCOUNT_APPROVAL_REQUIRED:
+            # Notify site admins about the user wanting activation
+            staff = auth.get_user_model().objects.filter(is_staff=True)
+            notification.send(staff, "account_approve", {"from_user": self.created_user})
+            return self.account_approval_required_response()
         if settings.ACCOUNT_EMAIL_CONFIRMATION_EMAIL and not email_address.verified:
             self.send_email_confirmation(email_address)
+
         if settings.ACCOUNT_EMAIL_CONFIRMATION_REQUIRED and not email_address.verified:
             return self.email_confirmation_required_response()
         else:
@@ -240,6 +255,22 @@ class SignupView(FormView):
             template_name = self.template_name_email_confirmation_sent_ajax
         else:
             template_name = self.template_name_email_confirmation_sent
+        response_kwargs = {
+            "request": self.request,
+            "template": template_name,
+            "context": {
+                "email": self.created_user.email,
+                "success_url": self.get_success_url(),
+            }
+        }
+        return self.response_class(**response_kwargs)
+
+    def account_approval_required_response(self):
+        if self.request.is_ajax():
+            template_name = self.template_name_admin_approval_ajax
+        else:
+            template_name = self.template_name_admin_approval_sent
+
         response_kwargs = {
             "request": self.request,
             "template": template_name,
