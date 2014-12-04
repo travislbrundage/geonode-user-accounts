@@ -226,7 +226,7 @@ class SignupCode(models.Model):
 class SignupCodeExtended(models.Model):
 
     signupcode = models.OneToOneField(SignupCode, primary_key=True)
-    username = models.CharField(max_length=30, unique=True)
+    username = models.CharField(max_length=30)
 
 class SignupCodeResult(models.Model):
 
