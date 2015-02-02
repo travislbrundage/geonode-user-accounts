@@ -231,5 +231,5 @@ class SignupCodeForm(forms.ModelForm):
     
     class Meta:
         model = SignupCode
-        fields = ('max_uses', 'email', 'notes',)
-        
+        fields = ('email', )
+
