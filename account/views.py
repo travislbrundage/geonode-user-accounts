@@ -799,7 +799,7 @@ class InviteUserView(LoginRequiredMixin, CreateView):
     messages = {
         "user_invited": {
             "level": messages.SUCCESS,
-            "text": _("User succesfully invited.")
+            "text": _("User successfully invited.")
      }
     }
 
