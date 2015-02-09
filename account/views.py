@@ -7,6 +7,7 @@ from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.views.generic.base import TemplateResponseMixin, View
 from django.views.generic.edit import FormView, CreateView
+from django.db import transaction
 
 from django.contrib import auth, messages
 from django.contrib.sites.models import get_current_site
@@ -109,6 +110,7 @@ class SignupView(FormView):
         )
         return super(SignupView, self).form_invalid(form)
 
+    @transaction.atomic
     def form_valid(self, form):
         self.created_user = self.create_user(form, commit=False)
         # prevent User post_save signal from creating an Account instance
@@ -514,6 +516,7 @@ class ChangePasswordView(FormView):
             })
         return kwargs
 
+    @transaction.atomic
     def form_valid(self, form):
         self.change_password(form)
         self.after_change_password()
@@ -561,6 +564,7 @@ class PasswordResetView(FormView):
             context["resend"] = True
         return context
 
+    @transaction.atomic
     def form_valid(self, form):
         self.send_email(form.cleaned_data["email"])
         response_kwargs = {
@@ -642,6 +646,7 @@ class PasswordResetTokenView(FormView):
                 self.messages["password_changed"]["text"]
             )
 
+    @transaction.atomic
     def form_valid(self, form):
         self.change_password(form)
         self.after_change_password()
@@ -803,6 +808,7 @@ class InviteUserView(LoginRequiredMixin, CreateView):
      }
     }
 
+    @transaction.atomic
     def form_valid(self, form):
         import uuid
         code = str(uuid.uuid4())
