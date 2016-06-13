@@ -96,7 +96,7 @@ def user_post_save(sender, **kwargs):
     After User.save is called we check to see if it was a created user. If so,
     we check if the User object wants account creation. If all passes we
     create an Account object.
-    
+
     We only run on user creation to avoid having to check for existence on
     each call to User.save.
     """
@@ -292,7 +292,7 @@ class EmailAddress(models.Model):
 class EmailConfirmation(models.Model):
 
     email_address = models.ForeignKey(EmailAddress)
-    created = models.DateTimeField(default=timezone.now())
+    created = models.DateTimeField(default=timezone.now)
     sent = models.DateTimeField(null=True)
     key = models.CharField(max_length=64, unique=True)
 
