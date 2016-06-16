@@ -428,7 +428,7 @@ class Migration(migrations.Migration):
             name='EmailConfirmation',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('created', models.DateTimeField(default=datetime.datetime(2016, 5, 1, 8, 49, 9, 848764))),
+                ('created', models.DateTimeField(default=django.utils.timezone.now)),
                 ('sent', models.DateTimeField(null=True)),
                 ('key', models.CharField(unique=True, max_length=64)),
                 ('email_address', models.ForeignKey(to='account.EmailAddress')),
