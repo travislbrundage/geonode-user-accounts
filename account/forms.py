@@ -65,7 +65,7 @@ class SignupForm(forms.Form):
         })
         qs = User.objects.filter(**lookup_kwargs)
         if not qs.exists():
-            return self.cleaned_data["username"]
+            return self.cleaned_data["username"].lower()
         raise forms.ValidationError(_("This username is already taken. Please choose another."))
 
     def clean_email(self):
@@ -97,6 +97,7 @@ class LoginForm(forms.Form):
     def clean(self):
         if self._errors:
             return
+        self.cleaned_data['username'] = self.cleaned_data['username'].lower()
         user = auth.authenticate(**self.user_credentials())
         if user:
             if user.is_active:
